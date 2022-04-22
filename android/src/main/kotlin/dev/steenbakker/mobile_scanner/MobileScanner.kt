@@ -182,6 +182,21 @@ class MobileScanner(private val activity: Activity, private val textureRegistry:
 
                 camera = cameraProvider!!.bindToLifecycle(activity as LifecycleOwner, selector, preview, analysis)
 
+                val scaleGestureDetector = ScaleGestureDetector(this,
+                object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+                    override fun onScale(detector: ScaleGestureDetector): Boolean {
+                        val scale = camera.cameraInfo.zoomState.value!!.zoomRatio * detector.scaleFactor
+                        camera.cameraControl.setZoomRatio(scale)
+                        return true
+                    }
+                })
+
+                preview!!.setOnTouchListener { view, event ->
+                    view.performClick()
+                    scaleGestureDetector.onTouchEvent(event)
+                    return@setOnTouchListener true
+                }
+
                 val analysisSize = analysis.resolutionInfo?.resolution ?: Size(0, 0)
                 val previewSize = preview!!.resolutionInfo?.resolution ?: Size(0, 0)
                 Log.i("LOG", "Analyzer: $analysisSize")
